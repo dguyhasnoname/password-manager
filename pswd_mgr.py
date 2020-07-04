@@ -65,7 +65,7 @@ def write_data():
                             dateTimeObj = datetime.now()
                             last_updated_add = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
                             v['password'] = password_add
-                            print (style.GREEN + "\nSuccess!" + style.RESET)
+                            print (style.GREEN + "\n[OK] Successfully updated credential." + style.RESET)
                             print(json.dumps(v, indent=4, sort_keys=True))
                             write_json(data)
                             sys.exit()
@@ -93,7 +93,7 @@ def write_data():
                for v in temp:
                     if username_add == v['username']:
                         print("\n" + json.dumps(v, indent=4, sort_keys=True))
-                        print (style.GREEN + "\nSuccess!" + style.RESET)              
+                        print (style.GREEN + "\n[OK] Successfully added new credential." + style.RESET)              
                sys.exit()
 
 def get_data(username):
@@ -114,11 +114,22 @@ def get_data(username):
         if not user_exist:   
             print (style.RED + "\n[WARNING] " + style.RESET + "Username \"{}\" not found! ".format(username))
             list_username(True)
-                
+
+def delete_data(username):
+    with open('data.json', 'rb') as json_file: 
+        data = json.load(json_file)  
+    print (style.RED + "\n[WARNING] Credential for username \"{}\" will be removed!".format(username) + style.RESET)  
+    data['accounts'] = [i for i in data['accounts'] if i['username'] != username]
+    with open('data.json','w') as f: 
+        json.dump(data, f, indent=4)
+    
+    list_username(True)
+    print (style.GREEN + "\n[OK] Credential removed." + style.RESET)
+             
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hwr:l", ["help", "write", "read", "list"])
+        opts, args = getopt.getopt(sys.argv[1:], "hwr:ld:", ["help", "write", "read", "list", "delete"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)
@@ -139,6 +150,9 @@ def main():
         elif o in ("-l", "--list"):
             user_list_flag = True
             list_username(user_list_flag)
+        elif o in ("-d", "--delete"):
+            username = a
+            delete_data(username)  
         else:
             assert False, "unhandled option"
 
