@@ -44,8 +44,8 @@ def write_data():
     # function to add to JSON 
     def write_json(data, filename='data.json'):
         with open(filename,'w') as f: 
-            json.dump(data, f, indent=4) 
-        
+            json.dump(data, f, indent=4)
+
     with open('data.json') as json_file: 
         data = json.load(json_file) 
         temp = data['accounts']
@@ -65,7 +65,8 @@ def write_data():
                             dateTimeObj = datetime.now()
                             last_updated_add = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
                             v['password'] = password_add
-                            print (value)
+                            print (style.GREEN + "\nSuccess!" + style.RESET)
+                            print(json.dumps(v, indent=4, sort_keys=True))
                             write_json(data)
                             sys.exit()
                else:
@@ -89,6 +90,10 @@ def write_data():
                 # appending data to emp_details  
                temp.append(y) 
                write_json(data)
+               for v in temp:
+                    if username_add == v['username']:
+                        print("\n" + json.dumps(v, indent=4, sort_keys=True))
+                        print (style.GREEN + "\nSuccess!" + style.RESET)              
                sys.exit()
 
 def get_data(username):
