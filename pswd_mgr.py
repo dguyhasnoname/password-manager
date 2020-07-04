@@ -26,6 +26,7 @@ def usage():
     print ("-r <username>   --read      read mode. Use this flag to read specific username's detail.") 
     print ("                            Password is not shown on the screen, instead it gets copied to clip board.")
     print ("-l              --list      list mode. Lists all usernames present in inventory.")  
+    print ("-d <username>   --delete    deletes given username from inventory.")  
 
 def list_username(user_list_flag):
     with open('data.json') as json_file: 
