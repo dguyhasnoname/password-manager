@@ -1,19 +1,19 @@
-import json 
-import getopt, sys, os, base64
+import simplejson as json
+import getopt, sys, os, re
 from datetime import datetime
-from Crypto.Cipher import AES
+from cryptography.fernet import Fernet
+import subprocess
+
+global f
+with open("/Users/mukund/.ssh/fernet_key", "rb") as file:
+    key = file.read()
+    f = Fernet(key)
 
 os.system("")
 class style():
-    BLACK = '\033[30m'
     RED = '\033[31m'
     GREEN = '\033[32m'
     YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    MAGENTA = '\033[35m'
-    CYAN = '\033[36m'
-    WHITE = '\033[37m'
-    UNDERLINE = '\033[4m'
     RESET = '\033[0m'
 
 def usage():
@@ -22,8 +22,9 @@ def usage():
     print ("Syntax: python3 pswd_mgr.py <options>\n")
     print ("Options: \n")
     print ("-h              --help      help about the script.")
-    print ("-w              --write     write mode. Use this flag to write new credentials.")
-    print ("-r <username>   --read      read mode. Use this flag to read specific username's detail.")  
+    print ("-w              --write     interactive write mode. Use this flag to write new credentials.")
+    print ("-r <username>   --read      read mode. Use this flag to read specific username's detail.") 
+    print ("                            Password is not shown on the screen, instead it gets copied to clip board.")
     print ("-l              --list      list mode. Lists all usernames present in inventory.")  
 
 def list_username(user_list_flag):
@@ -41,7 +42,7 @@ def list_username(user_list_flag):
 
 def write_data():
     # function to add to JSON 
-    def write_json(data, filename='data.json'): 
+    def write_json(data, filename='data.json'):
         with open(filename,'w') as f: 
             json.dump(data, f, indent=4) 
         
@@ -52,22 +53,28 @@ def write_data():
         # taking user input to add new data
         username_add = input("Enter username: ")
         for value in temp:
-           list_username(user_list_flag) 
+           list_username(False) 
            if any(username_add in s for s in user_list):
                print ("Username {} already exists!".format(username_add))
                user_input = input("You want to update? Y/N: ")
                if user_input == "Y":
-                    password_add = input("Enter password: ") 
-                    dateTimeObj = datetime.now()
-                    last_updated_add = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
-                    value['password'] = password_add
-                    write_json(data)
-                    sys.exit()
+                    for v in temp:
+                        if username_add == v['username']:
+                            password_input = input("Enter password: ")
+                            password_add = f.encrypt(password_input.encode("utf-8"))
+                            dateTimeObj = datetime.now()
+                            last_updated_add = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
+                            v['password'] = password_add
+                            print (value)
+                            write_json(data)
+                            sys.exit()
                else:
                    print ("Exiting!")
                    sys.exit()
            else:
-               password_add = input("Enter password: ") 
+               #password_add = input("Enter password: ") 
+               password_input = input("Enter password: ") 
+               password_add = f.encrypt(password_input.encode("utf-8"))
                website_add = input("Enter website: ") 
                dateTimeObj = datetime.now()
                last_updated_add = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
@@ -86,13 +93,23 @@ def write_data():
 
 def get_data(username):
     with open('data.json') as json_file: 
-        data = json.load(json_file) 
+        data = json.load(json_file)
+        list_username(False)       
         for value in data['accounts']:
             if username == value['username']:
                 print (style.GREEN + "\nDetails found for username:", username + "\n" + style.RESET)
                 print(json.dumps(value, indent=4, sort_keys=True))
+                return_password_byte = f.decrypt(value['password'].encode("utf-8"))
+                # converting return_password_byte to utf format to avoid json serialization error
+                return_password = return_password_byte.decode("utf-8") 
+                subprocess.run("pbcopy", universal_newlines=True, input=return_password)
+                sys.exit()
             else:
-                print (style.RED + "[WARNING] " + style.RESET + "Username \"{}\" not found! ".format(username))
+                user_exist = False
+        if not user_exist:   
+            print (style.RED + "\n[WARNING] " + style.RESET + "Username \"{}\" not found! ".format(username))
+            list_username(True)
+                
 
 def main():
     try:
@@ -119,7 +136,6 @@ def main():
             list_username(user_list_flag)
         else:
             assert False, "unhandled option"
-    # ...
 
 if __name__ == "__main__":
     main()
