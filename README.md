@@ -7,7 +7,7 @@ It encrypts and stores password in a JSON file.
 2. You need to store the key carefully(with 400 permission) which is used for encryption/decryption.
 3. You can update password for any credential.
 
-### usage: pswd_mgr.py [-h] [-w] [-r] [-l] [-d]
+#### usage: pswd_mgr.py [-h] [-w] [-r] [-l] [-d]
 
 Before running script export key file as env:
 
@@ -33,3 +33,4 @@ Before running script export key file as env:
   -l , --list      list mode. Lists all usernames present in inventory.
   -d , --delete=   deletes given username credentials from inventory.
 ```
+
