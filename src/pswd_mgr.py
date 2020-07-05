@@ -1,5 +1,5 @@
 import simplejson as json
-import getopt, sys, os, re, argparse, subprocess
+import getopt, sys, os, re, argparse, subprocess, pyperclip
 from datetime import datetime
 from cryptography.fernet import Fernet
 from getpass import getpass
@@ -128,14 +128,14 @@ def get_data(alias):
                 print(json.dumps(value, indent=4, sort_keys=True))
                 return_password_byte = f.decrypt(value['password'].encode("utf-8"))
                 # converting return_password_byte to utf format to avoid json serialization error
-                return_password = return_password_byte.decode("utf-8") 
-                subprocess.run("pbcopy", universal_newlines=True, input=return_password)
+                return_password = return_password_byte.decode("utf-8")
+                pyperclip.copy(return_password)
                 print (style.GREEN + "\n[OK] " + style.RESET + "Password has been copied on clipboard for username: \"{}\"".format(value['username']) + "\n" )
                 sys.exit()
             else:
                 user_exist = False
         if not user_exist:   
-            print (style.RED + "\n[WARNING] " + style.RESET + "Credential not found for \"{}\" not found! ".format(alias))
+            print (style.RED + "\n[WARNING] " + style.RESET + "Credential not found for \"{}\" !".format(alias))
             list_username(True)
 
 def delete_data(alias):
