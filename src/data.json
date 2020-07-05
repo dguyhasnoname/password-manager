@@ -1,0 +1,46 @@
+{
+    "accounts": [
+        {
+            "username": "test",
+            "website": "https://test.com",
+            "password": "gAAAAABfANys31iGY-yLjlKJhbYQgeV6hfgpZ3uMsft12PYR-vDsGP_zWa4MU9uSsUpnWIZe_jHoHcSTDC5nCXMDGb3o11foqQ==",
+            "last_updated": "04-07-20"
+        },
+        {
+            "username": "mukund",
+            "website": "https://grafana.com",
+            "password": "gAAAAABfAOCCDGg--63zzEUzfPmpFzteu0Yk6r6fQYZjmIy3LqMUN1w3P8aOrcYLaE5XF1Fk3Mn9LuFDpzYM9JE20AMPkzZbZA==",
+            "last_updated": "05-Jul-2020 (00:27:19.528953)"
+        },
+        {
+            "username": "ndm-shared",
+            "website": "https://ndm-shared.signin.aws.amazon.com/console",
+            "password": "gAAAAABfAUFf0lPXwoMu6mk4nCQzQ40M3_cpD--kPStfBjyqWzTey2g_FFYg_J64RMHbFpEGA9ZqE3dhxtIaVoCmHKxv5q2YtFTGS84trjcTUVXMdA7H8R8=",
+            "last_updated": "05-Jul-2020 (00:30:17.519481)"
+        },
+        {
+            "username": "ndm-shared-npn",
+            "website": "https://ndm-shared-npn.signin.aws.amazon.com/console",
+            "password": "gAAAAABfANIPzij-fGj_XK2YJI5N99A2BeSL1uFaDofxVQQ8RHZHhKtyWdGyKPcqe9awCJ6ohx21IxGMp2Jd5lA5_FFHXLy8t8n7_8KMnRPJxv3HV6cCoEU=",
+            "last_updated": "05-Jul-2020 (00:31:50.617728)"
+        },
+        {
+            "username": "git_mckinsey_solutions",
+            "website": "https://git.mckinsey-solutions.com/settings/tokens",
+            "password": "gAAAAABfANKvGITYOQWxBqtqAWurk8WYUb_LVpYw1M7rKo813Sfq6UknNvR8peNwU6bzqnWtLCj5TCpisUwaKFgb5Bd8sxirvWJE0YsjVYCbhxLZVrRmnu4XrcKb_1k1Z2SUxF8pUwD2",
+            "last_updated": "05-Jul-2020 (00:34:23.646456)"
+        },
+        {
+            "username": "minio-AWSS926NK87U18CYTV8O",
+            "website": "https://minio.intranet.mckinsey.com ",
+            "password": "gAAAAABfANOQX9HFkvGAbnXpXREaPSCCYTe7LMXITtYnnH_iRgITrmfvuN3ZGgOy1bMo34modbURDhuPACMZxFx9L4DZqPS-z_Ne6Pwyg-6UmhABavFQLGS2WAsaNvBfeMYUDoIkgObU",
+            "last_updated": "05-Jul-2020 (00:38:08.732032)"
+        },
+        {
+            "username": "dguyhasnoname",
+            "website": "https://github.com/dguyhasnoname",
+            "password": "gAAAAABfAT9gPkN4vT-6sTJ29Q9hOWoVxcSRq1BiWrnQ4wV3GDwrs-4fXDXZFdugRWB7rOZD7hZA3rDHtya71frBL6xAOZqJXw==",
+            "last_updated": "05-Jul-2020 (08:18:12.638321)"
+        }
+    ]
+}
