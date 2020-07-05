@@ -1,8 +1,7 @@
 import simplejson as json
-import getopt, sys, os, re, argparse
+import getopt, sys, os, re, argparse, subprocess
 from datetime import datetime
 from cryptography.fernet import Fernet
-import subprocess
 from getpass import getpass
 
 global f
@@ -17,6 +16,7 @@ class style():
     GREEN = '\033[32m'
     YELLOW = '\033[33m'
     RESET = '\033[0m'
+    UNDERLINE = '\033[4m'
 
 def usage():
     parser=argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -48,11 +48,17 @@ def list_username(user_list_flag):
         global user_list
         user_list = []
         for i in data['accounts']:
-            user = json.dumps(i['username'], indent=4, sort_keys=True)
+            user = json.dumps(i['alias'], indent=4, sort_keys=True)
             user_list.append(user)
         if user_list_flag:
             print (style.GREEN + "\nPassword inventory contains credentials for below usernames: \n" + style.RESET)
-            print(*user_list,sep='\n')
+            lenList = []
+            for x in user_list:
+                lenList.append(len(x))
+                width = max(lenList) + 5
+            print (style.UNDERLINE + '%-*s  %-*s' % (width, "USERNAME", 10, "ALIAS") + style.RESET) 
+            for i in data['accounts']:
+                print ('%-*s  %-*s' % (width, i['username'], 10, i['alias']))
         return user_list
 
 def write_data():
@@ -66,16 +72,16 @@ def write_data():
         temp = data['accounts']
     
         # taking user input to add new data
-        username_add = input("Enter username: ")
+        alias_add = input("Enter alias for this credential: ")
         for value in temp:
            list_username(False) 
-           if any(username_add in s for s in user_list):
-               print ("Username {} already exists!".format(username_add))
+           if any(alias_add in s for s in user_list):
+               print ("Credential {} already exists!".format(alias_add))
                user_input = input("You want to update? Y/N: ")
                if user_input == "Y":
                     for v in temp:
-                        if username_add == v['username']:
-                            password_input = input("Enter password: ")
+                        if alias_add == v['alias']:
+                            password_input = getpass("Enter password: ")
                             password_add = f.encrypt(password_input.encode("utf-8"))
                             dateTimeObj = datetime.now()
                             last_updated_add = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
@@ -88,7 +94,7 @@ def write_data():
                    print ("Exiting!")
                    sys.exit()
            else:
-               #password_add = input("Enter password: ") 
+               username_add = input("Enter username: ")
                password_input = getpass("Enter password: ") 
                password_add = f.encrypt(password_input.encode("utf-8"))
                website_add = input("Enter website: ") 
@@ -99,10 +105,11 @@ def write_data():
                y = {"username": username_add, 
                    "website": website_add, 
                    "password": password_add,
-                   "last_updated": last_updated_add
+                   "last_updated": last_updated_add,
+                   "alias": alias_add
                    } 
             
-                # appending data to emp_details  
+               # appending data to emp_details  
                temp.append(y) 
                write_json(data)
                for v in temp:
@@ -111,55 +118,53 @@ def write_data():
                         print (style.GREEN + "\n[OK] Successfully added new credential." + style.RESET)              
                sys.exit()
 
-def get_data(username):
+def get_data(alias):
     with open('data.json') as json_file: 
         data = json.load(json_file)
         list_username(False)       
         for value in data['accounts']:
-            if username == value['username']:
-                print (style.GREEN + "\n[OK] Details found for username:", username + "\n" + style.RESET)
+            if alias == value['alias']:
+                print (style.GREEN + "\n[OK] " + style.RESET + "Details found for credential:", alias + "\n" )
                 print(json.dumps(value, indent=4, sort_keys=True))
                 return_password_byte = f.decrypt(value['password'].encode("utf-8"))
                 # converting return_password_byte to utf format to avoid json serialization error
                 return_password = return_password_byte.decode("utf-8") 
                 subprocess.run("pbcopy", universal_newlines=True, input=return_password)
-                print (style.GREEN + "\n[OK] Password has been copied on clipboard for username:", username + "\n" + style.RESET)
+                print (style.GREEN + "\n[OK] " + style.RESET + "Password has been copied on clipboard for username: \"{}\"".format(value['username']) + "\n" )
                 sys.exit()
             else:
                 user_exist = False
         if not user_exist:   
-            print (style.RED + "\n[WARNING] " + style.RESET + "Username \"{}\" not found! ".format(username))
+            print (style.RED + "\n[WARNING] " + style.RESET + "Credential not found for \"{}\" not found! ".format(alias))
             list_username(True)
 
-def delete_data(username):
+def delete_data(alias):
     with open('data.json', 'rb') as json_file: 
         data = json.load(json_file)  
     list_username(False) 
-    if any(username in s for s in user_list):
-        print (style.RED + "\n[WARNING] Credential for username \"{}\" will be removed!".format(username) + style.RESET)  
-        data['accounts'] = [i for i in data['accounts'] if i['username'] != username]
+    if any(alias in s for s in user_list):
+        print (style.RED + "\n[WARNING] Credential \"{}\" will be removed!".format(alias) + style.RESET)  
+        data['accounts'] = [i for i in data['accounts'] if i['alias'] != alias]
         with open('data.json','w') as f: 
             json.dump(data, f, indent=4)
         list_username(True)
         print (style.GREEN + "\n[OK] Credential removed." + style.RESET)
     else:
-        print (style.RED + "\n[WARNING] " + style.RESET + "Username \"{}\" not found! ".format(username))
+        print (style.RED + "\n[WARNING] " + style.RESET + "Credential \"{}\" not found! ".format(alias))
         list_username(True)
-
-             
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hwr:ld:", ["help", "write", "read=", "list", "delete="])
         if not opts:
-            print (style.RED + "\n[ERROR] " + style.RESET + "No arguments supplied! Run script with -h to see usage.")
+            print (style.RED + "\n[ERROR] " + style.RESET + "No arguments passed! Run script with -h to see usage.")
             
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)
         usage()
         sys.exit(2)
-    username = ""
+    
     global user_list_flag 
     user_list_flag = ""
     for o, a in opts:
@@ -169,14 +174,14 @@ def main():
         elif o in ("-w", "--write"):
             write_data()
         elif o in ("-r", "--read"):
-            username = a
-            get_data(username)
+            alias = a
+            get_data(alias)
         elif o in ("-l", "--list"):
             user_list_flag = True
             list_username(user_list_flag)
         elif o in ("-d", "--delete"):
-            username = a
-            delete_data(username)  
+            alias = a
+            delete_data(alias)  
         else:
             assert False, "unhandled option"
 
