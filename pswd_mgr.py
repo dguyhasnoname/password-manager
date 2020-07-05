@@ -1,11 +1,13 @@
 import simplejson as json
-import getopt, sys, os, re
+import getopt, sys, os, re, argparse
 from datetime import datetime
 from cryptography.fernet import Fernet
 import subprocess
+from getpass import getpass
 
 global f
-with open("/Users/mukund/.ssh/fernet_key", "rb") as file:
+PASSWORD_MANAGER_KEY = os.getenv('PASSWORD_MANAGER_KEY', '/Users/mukund/.ssh/fernet_key')
+with open(PASSWORD_MANAGER_KEY, "rb") as file:
     key = file.read()
     f = Fernet(key)
 
@@ -17,16 +19,28 @@ class style():
     RESET = '\033[0m'
 
 def usage():
-    print (style.YELLOW + "\nUsage: \n" + style.RESET)
-    print ("This script requires to be run in python3.\n")
-    print ("Syntax: python3 pswd_mgr.py <options>\n")
-    print ("Options: \n")
-    print ("-h              --help      help about the script.")
-    print ("-w              --write     interactive write mode. Use this flag to write new credentials.")
-    print ("-r <username>   --read      read mode. Use this flag to read specific username's detail.") 
-    print ("                            Password is not shown on the screen, instead it gets copied to clip board.")
-    print ("-l              --list      list mode. Lists all usernames present in inventory.")  
-    print ("-d <username>   --delete    deletes given username from inventory.")  
+    parser=argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""This script can be used as an utility to store passwords along with associated fields.
+It encrypts and stores password in a JSON file.\n
+Dependencies: 
+    1. python version                       python3
+    2. Encryption/Decryption                cryptography.fernet
+    3. JSON formating to handle byte data   simplejson
+    4. Hiding password input                getpass
+    5. Others                               subprocess/daterime/re etc \n
+
+Before running script export key file as env:
+
+    env=<location to key file to be user for encryption/decryption>
+    export PASSWORD_MANAGER_KEY=/Users/dguyhasnoname/.ssh/fernet_key\n""",
+        epilog="""All's well that ends well.""")
+    
+    parser.add_argument('-w', '--write=', metavar='', type=str, help="interactive write mode. Use this flag to write new credentials.")
+    parser.add_argument('-r', '--read=', metavar='', type=str, help="read mode. Use this flag to read specific username's detail. \
+                                                                    Password is not shown on the screen, instead it gets copied to clip board.")
+    parser.add_argument('-l', '--list', metavar='', type=str, help="list mode. Lists all usernames present in inventory.")
+    parser.add_argument('-d', '--delete=', metavar='', type=str, help="deletes given username credentials from inventory.")
+    args=parser.parse_args() 
 
 def list_username(user_list_flag):
     with open('data.json') as json_file: 
@@ -37,7 +51,7 @@ def list_username(user_list_flag):
             user = json.dumps(i['username'], indent=4, sort_keys=True)
             user_list.append(user)
         if user_list_flag:
-            print (style.GREEN + "\nPassword inventory contains below usernames: \n" + style.RESET)
+            print (style.GREEN + "\nPassword inventory contains credentials for below usernames: \n" + style.RESET)
             print(*user_list,sep='\n')
         return user_list
 
@@ -75,7 +89,7 @@ def write_data():
                    sys.exit()
            else:
                #password_add = input("Enter password: ") 
-               password_input = input("Enter password: ") 
+               password_input = getpass("Enter password: ") 
                password_add = f.encrypt(password_input.encode("utf-8"))
                website_add = input("Enter website: ") 
                dateTimeObj = datetime.now()
@@ -103,12 +117,13 @@ def get_data(username):
         list_username(False)       
         for value in data['accounts']:
             if username == value['username']:
-                print (style.GREEN + "\nDetails found for username:", username + "\n" + style.RESET)
+                print (style.GREEN + "\n[OK] Details found for username:", username + "\n" + style.RESET)
                 print(json.dumps(value, indent=4, sort_keys=True))
                 return_password_byte = f.decrypt(value['password'].encode("utf-8"))
                 # converting return_password_byte to utf format to avoid json serialization error
                 return_password = return_password_byte.decode("utf-8") 
                 subprocess.run("pbcopy", universal_newlines=True, input=return_password)
+                print (style.GREEN + "\n[OK] Password has been copied on clipboard for username:", username + "\n" + style.RESET)
                 sys.exit()
             else:
                 user_exist = False
@@ -119,18 +134,26 @@ def get_data(username):
 def delete_data(username):
     with open('data.json', 'rb') as json_file: 
         data = json.load(json_file)  
-    print (style.RED + "\n[WARNING] Credential for username \"{}\" will be removed!".format(username) + style.RESET)  
-    data['accounts'] = [i for i in data['accounts'] if i['username'] != username]
-    with open('data.json','w') as f: 
-        json.dump(data, f, indent=4)
-    
-    list_username(True)
-    print (style.GREEN + "\n[OK] Credential removed." + style.RESET)
+    list_username(False) 
+    if any(username in s for s in user_list):
+        print (style.RED + "\n[WARNING] Credential for username \"{}\" will be removed!".format(username) + style.RESET)  
+        data['accounts'] = [i for i in data['accounts'] if i['username'] != username]
+        with open('data.json','w') as f: 
+            json.dump(data, f, indent=4)
+        list_username(True)
+        print (style.GREEN + "\n[OK] Credential removed." + style.RESET)
+    else:
+        print (style.RED + "\n[WARNING] " + style.RESET + "Username \"{}\" not found! ".format(username))
+        list_username(True)
+
              
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hwr:ld:", ["help", "write", "read", "list", "delete"])
+        opts, args = getopt.getopt(sys.argv[1:], "hwr:ld:", ["help", "write", "read=", "list", "delete="])
+        if not opts:
+            print (style.RED + "\n[ERROR] " + style.RESET + "No arguments supplied! Run script with -h to see usage.")
+            
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)
