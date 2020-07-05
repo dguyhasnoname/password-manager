@@ -8,4 +8,4 @@ WORKDIR /app
 
 ENV PASSWORD_MANAGER_KEY /app/.ssh/fernet_key
 
-ENTRYPOINT ["python", "./pswd_mgr.py"]
+#ENTRYPOINT ["python", "./pswd_mgr.py"]
