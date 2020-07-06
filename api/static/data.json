@@ -1,0 +1,21 @@
+[
+    {
+        "username": "test",
+        "url": "https://test.com",
+        "password": "gAAAAABfANys31iGY-yLjlKJhbYQgeV6hfgpZ3uMsft12PYR-vDsGP_zWa4MU9uSsUpnWIZe_jHoHcSTDC5nCXMDGb3o11foqQ==",
+        "last_updated": "04-07-20",
+        "id": "test"
+    },
+    {
+        "username": "new",
+        "password": "password",
+        "id": "new",
+        "url": "newq"
+    },
+    {
+        "username": "ok1",
+        "password": "passw",
+        "id": "ok",
+        "url": "wq"
+    }
+]
