@@ -52,7 +52,8 @@ Before running script export key file as env:
 
 ### adding new credential
 
-```Mon Jul 06 01:28 PM IST: 192.168.64.3:8443: src$ python3 pswd_mgr.py -w
+```
+Mon Jul 06 01:28 PM IST: 192.168.64.3:8443: src$ python3 pswd_mgr.py -w
 Enter alias for this credential: new
 Enter username: new
 Enter password: 
@@ -131,6 +132,7 @@ ok                             ok
 
 ### listing credentials
 
+```
 Mon Jul 06 01:41 PM IST: 192.168.64.3:8443: src$ python3 pswd_mgr.py -l
 
 Password inventory contains credentials for below usernames: 
