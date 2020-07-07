@@ -47,7 +47,7 @@ def api_id_get():
         if 'id' in request.args:
             username = str(request.args['id'])
         else:
-            return "Error: No ID field provided. Please specify an ID."
+            return "[ERROR]: No ID field provided. Please specify an ID."
 
         results = []
 
@@ -56,9 +56,13 @@ def api_id_get():
                 results.append(account)       
 
         return jsonify(results)
-        
+
     elif flask.request.method == 'POST':
         json_data = request.get_json(force=True)
+
+        for account in accounts:
+            if account['id'] == json_data['id']:
+                return "[WARNING]: ID \"{}\" already exists!".format(json_data['id'])
 
         data = {"username": json_data['username'],
                 "password": f.encrypt(json_data['password'].encode("utf-8")),
