@@ -9,8 +9,8 @@ app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
 def write_json(data, filename='./static/data.json'):
-    with open(filename,'w') as f: 
-        json.dump(data, f, indent=4)
+    with open(filename,'w') as json_data: 
+        json.dump(data, json_data, indent=4)
     return data
 
 def render_data():
