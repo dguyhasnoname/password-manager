@@ -1,4 +1,5 @@
-import os, json
+import os
+import simplejson as json
 import flask
 from flask import request, jsonify
 from cryptography.fernet import Fernet
@@ -7,6 +8,12 @@ from getpass import getpass
 #https://programminghistorian.org/en/lessons/creating-apis-with-python-and-flask
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
+
+global f
+PASSWORD_MANAGER_KEY = os.getenv('PASSWORD_MANAGER_KEY', '/Users/mukund/.ssh/fernet_key')
+with open(PASSWORD_MANAGER_KEY, "rb") as file:
+    key = file.read()
+    f = Fernet(key)
 
 def write_json(data, filename='./static/data.json'):
     with open(filename,'w') as json_data: 
@@ -52,8 +59,11 @@ def api_id_get():
     elif flask.request.method == 'POST':
         json_data = request.get_json(force=True)
 
+        password_input = json_data['password']
+        password = f.encrypt(password_input.encode("utf-8"))
+
         data = {"username": json_data['username'],
-                "password": json_data['password'],
+                "password": password,
                 "id": json_data['id'], 
                 "url": json_data['url']
                 }
