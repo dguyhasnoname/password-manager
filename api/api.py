@@ -1,4 +1,4 @@
-import os
+import os, pyperclip
 import simplejson as json
 import flask
 from flask import request, jsonify
@@ -45,15 +45,16 @@ def api_id_get():
     render_data()
     if flask.request.method == 'GET':
         if 'id' in request.args:
-            username = str(request.args['id'])
+            id = str(request.args['id'])
         else:
             return "[ERROR]: No ID field provided. Please specify an ID."
 
         results = []
 
         for account in accounts:
-            if account['id'] == username:
-                results.append(account)       
+            if account['id'] == id:
+                results.append(account)
+                pyperclip.copy(f.decrypt(account['password'].encode("utf-8")).decode("utf-8"))
 
         return jsonify(results)
 
