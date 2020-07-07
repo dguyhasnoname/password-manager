@@ -75,7 +75,7 @@ def api_id_get():
         write_json(accounts)
         return jsonify(data)
 
-    elif flask.request.method == 'DELETE':
+    else:
         if 'id' in request.args:
             id = str(request.args['id'])
         else:
@@ -88,9 +88,8 @@ def api_id_get():
                 data = [i for i in accounts if i['id'] != id]
                 results = write_json(data)
         return jsonify(results)
-    else:
-        return "[ERROR] wrong method!"
 
+# A route to read username data.
 @app.route('/api/v1/accounts/username', methods=['GET'])
 def api_username():
     render_data()
@@ -104,6 +103,7 @@ def api_username():
     for account in accounts:
         if account['username'] == username:
             results.append(account)
+            pyperclip.copy(f.decrypt(account['password'].encode("utf-8")).decode("utf-8"))
 
     return jsonify(results)
 
