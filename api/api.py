@@ -56,14 +56,12 @@ def api_id_get():
                 results.append(account)       
 
         return jsonify(results)
+        
     elif flask.request.method == 'POST':
         json_data = request.get_json(force=True)
 
-        password_input = json_data['password']
-        password = f.encrypt(password_input.encode("utf-8"))
-
         data = {"username": json_data['username'],
-                "password": password,
+                "password": f.encrypt(json_data['password'].encode("utf-8")),
                 "id": json_data['id'], 
                 "url": json_data['url']
                 }
