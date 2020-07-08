@@ -23,17 +23,21 @@ tasks = db.task  # Select the collection name
 
 accounts = dumps(tasks.find())
 
+def get_id():
+    if 'id' in request.args:
+        id = str(request.args['id'])
+    else:
+        return "\n[ERROR]: No ID field provided. Please specify an ID."
+    return id 
+
 @app.route('/api/v1/accounts/all', methods=['GET'])
 def api_all():
     return accounts
 
-@app.route('/api/v1/accounts/id', methods=['GET', 'POST', 'DELETE'])
+@app.route('/api/v1/accounts/id', methods=['GET', 'POST', 'DELETE', 'UPDATE'])
 def api_id_get():
     if flask.request.method == 'GET':
-        if 'id' in request.args:
-            id = str(request.args['id'])
-        else:
-            return "\n[ERROR]: No ID field provided. Please specify an ID."
+        id = get_id()
 
         for account in tasks.find():
             account['id'] = str(account['id'])
@@ -65,11 +69,8 @@ def api_id_get():
             tasks.insert_one(data).inserted_id
             return "\n[SUCCESS] ID \"{}\" saved!".format(json_data['id'])
 
-    else:
-        if 'id' in request.args:
-            id = str(request.args['id'])
-        else:
-            return "\n[ERROR]: No ID field provided. Please specify an ID."
+    elif flask.request.method == 'DELETE':
+        id = get_id()
 
         for account in tasks.find():
             account['id'] = str(account['id'])
@@ -79,7 +80,27 @@ def api_id_get():
             else:
                 flag = True
         if flag: 
-            return "\n[WARNING] ID \"{}\" not found!".format(id)                     
+            return "\n[WARNING] ID \"{}\" not found!".format(id)  
+    else:
+        json_data = request.get_json(force=True)
+
+        json_data['last_updated'] = datetime.utcnow()
+        data = {"username": json_data['username'],
+                "password": f.encrypt(json_data['password'].encode("utf-8")),
+                "id": json_data['id'], 
+                "url": json_data['url'],
+                "last_updated": json_data['last_updated']
+                }        
+
+        for account in tasks.find():
+            account['id'] = str(account['id'])
+            if account['id'] == json_data['id']:
+                tasks.replace_one(account, data, upsert=True)
+                return "\n[OK] ID \"{}\" updated!".format(account['id'])   
+            else:
+                flag = True
+        if flag: 
+            return "\n[WARNING] ID \"{}\" not found!".format(id)         
 
 @app.route('/', methods=['GET'])
 def home():
@@ -88,7 +109,6 @@ def home():
 @app.route('/test', methods=['GET'])
 def test():
     return jsonify({'msg': 'This is a Test'})
-
 
 if __name__ == '__main__':
     app.run(debug=True)
