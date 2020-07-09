@@ -1,0 +1,33 @@
+<html>    
+    <head>    
+        <title>Search</title>    
+        <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='assets/style.css')}}" >    
+    </head>    
+<body>    
+    <h1>OK</h1>    
+    <hr>    
+        {% if account[0] %}    
+    <h3>Result of the Search : accounts list</h3>    
+    <table>    
+        <tr id="row">     
+            <th style="text-align:left" class="id">id</th>    
+            <th style="text-align:left" class="usename">username</th>      
+            <th style="text-align:left" class="url">url</th> 
+            <th style="text-align:left" class="password">password</th>    
+        </tr>    
+        {% for account in accounts %}    
+        <tr class="datas">    
+            <td class="id">{{ account["id"] }}</td>    
+            <td class="username">{{ account["username"] }}</td>      
+            <td class="url">{{ account["url"] }}</td>    
+            <td class="password">{{ account["password"] }} </td>    
+            <td class="func1"><a href="./api/v1/accounts/id?id={{ account['id'] }}" method="GET"><button type="submit">JSON</button></a></td>    
+        </tr>    
+        {% endfor %}    
+    {% else %}    
+        <h4>No Result Found !!</h4>    
+    {% endif %}    
+    </table>    
+   <a href="/">Return to Home</a>    
+</body>    
+</html>  

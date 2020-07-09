@@ -3,7 +3,7 @@ from flask import request, jsonify, make_response, render_template, redirect,url
 from pymongo import MongoClient
 import os, pyperclip, time
 import simplejson as json
-from jsonschema import validate
+import jsonschema
 from bson.json_util import dumps, loads
 from cryptography.fernet import Fernet
 from datetime import datetime   
@@ -27,6 +27,22 @@ def format_ouput(status=200, indent=4, sort_keys=True, **kwargs):
     response.headers['mimetype'] = 'application/json'
     response.status_code = status
     return response
+
+def validate_json(data):
+    schema = {
+        "type" : "object",
+        "properties" : {
+            "id" : {"type" : "string", "minLength": 3, "maxLength": 20},
+            "username" : {"type" : "string", "minLength": 3, "maxLength": 20},
+            "password" : {"type" : "string", "minLength": 5, "maxLength": 25},
+            "url" : {"type" : "string"},
+            "last_updated" : {"type" : "string"},
+        },
+    }
+    if jsonschema.validate(data, schema):
+        return True
+    else:
+        return "[ERROR] Invalid JSON!"  
 
 def get_id():
     if 'id' in request.args:
@@ -60,13 +76,19 @@ def api_id_get():
                 return format_ouput(**account)
 
     elif flask.request.method == 'POST':
+        validate_json({"username": request.values.get("username"),
+                "password": request.values.get("password"),
+                "id": request.values.get("id"), 
+                "url": request.values.get("url"),
+                "last_updated": ""
+                })
         data = {"username": request.values.get("username"),
                 "password": f.encrypt(request.values.get("password").encode("utf-8")),
                 "id": request.values.get("id"), 
                 "url": request.values.get("url"),
                 "last_updated": datetime.utcnow()
                 }
-        validate_json(data)
+        
 
         for account in tasks.find():
             account['id'] = str(account['id'])
@@ -77,7 +99,8 @@ def api_id_get():
                 flag = True
         if flag: 
             tasks.insert_one(data).inserted_id
-            return "\n[SUCCESS] ID \"{}\" saved!".format(data['id'])          
+            #return "\n[SUCCESS] ID \"{}\" saved!".format(data['id'])
+            return redirect(url_for('get_template'))          
     else:
         return "[ERROR]"
       
@@ -89,7 +112,8 @@ def api_id_delete():
         account['id'] = str(account['id'])
         if account['id'] == id:
             tasks.delete_one(account)
-            return "\n[SUCCESS] ID \"{}\" deleted!".format(id)   
+            #return "\n[SUCCESS] ID \"{}\" deleted!".format(id)
+            return redirect(url_for('get_template'))   
         else:
             flag = True
     if flag: 
@@ -97,6 +121,12 @@ def api_id_delete():
 
 @app.route('/api/v1/accounts/update', methods=['POST'])
 def api_id_update():
+    validate_json({"username": request.values.get("username"),
+            "password": request.values.get("password"),
+            "id": request.values.get("id"), 
+            "url": request.values.get("url"),
+            "last_updated": ""
+            })
     data = {"username": request.values.get("username"),
             "password": f.encrypt(request.values.get("password").encode("utf-8")),
             "id": request.values.get("id"), 
@@ -108,7 +138,8 @@ def api_id_update():
         account['id'] = str(account['id'])
         if account['id'] == data['id']:
             tasks.replace_one(account, data, upsert=True)
-            return "\n[OK] ID \"{}\" updated!".format(account['id'])   
+            #return "\n[OK] ID \"{}\" updated!".format(account['id']) 
+            return redirect(url_for('get_template'))   
         else:
             flag = True
     if flag: 
