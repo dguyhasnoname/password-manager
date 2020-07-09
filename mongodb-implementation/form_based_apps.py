@@ -28,26 +28,12 @@ def format_ouput(status=200, indent=4, sort_keys=True, **kwargs):
     response.status_code = status
     return response
 
-def validate_json(data):
-    schema = {
-            "id" : {"type" : "string"},
-            "username" : {"type" : "string"},
-            "password" : {"type" : "string"},
-            "url" : {"type" : "string"},
-            "last_updated" : {"type" : "string"}
-             }    
-    input_json = json.loads(data)
-    try:
-        validate(instance=data, schema=schema)
-    except:
-        return "\n[ERROR]: Invalid JSON passed."
-
-
 def get_id():
     if 'id' in request.args:
         id = str(request.args['id'])
     else:
         return "\n[ERROR]: No ID field provided. Please specify an ID."
+    return id
     
 
 @app.route('/api/v1/accounts/all', methods=['GET'])
@@ -67,10 +53,10 @@ def api_id_get():
 
         for account in tasks.find():
             account['id'] = str(account['id'])
-           # account['password'] = str(account['password'])
+            #account['password'] = str(account['password'])
             if account['id'] == id:
                 account['password'] = f.decrypt(account['password']).decode("utf-8")
-                pyperclip.copy(f.decrypt(account['password'].encode("utf-8")).decode("utf-8"))
+                #pyperclip.copy(f.decrypt(account['password'].encode("utf-8")).decode("utf-8"))
                 return format_ouput(**account)
 
     elif flask.request.method == 'POST':
