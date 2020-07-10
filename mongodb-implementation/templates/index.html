@@ -1,0 +1,75 @@
+<html>    
+    <head>    
+        <title>Password manager</title>    
+        <!-- href="/static/assets/style.css"-->    
+        <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='assets/style.css')}}" >    
+        <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='assets/emoji.css')}}" >    
+        <script src="{{ url_for('static',filename='assets/twemoji.min.js')}}"></script>      
+        <script src="{{ url_for('static',filename='assets/emoji.js')}}"></script>        
+    </head>    
+<body>    
+    <h1>Password manager</h1>         
+    {% if accounts[0] %}    
+    <div span="right">    
+    <form action="/"   method="GET" >    
+   
+    </form>    
+    </div>   
+    <hr>  
+    <b><big>Accounts <a href="/api/v1/accounts/all" class="active">list</a></big> </b>  
+    <hr>    
+    <table >    
+        <tr id="row" style="text-align:left" >     
+            <th class="id">id</th>    
+            <th class="usename">username</th>      
+            <th class="url">url</th>    
+            <th class="last_updated">last_updated</th>
+            <th class="password">password</th>     
+        </tr>    
+    {% for account in accounts %}    
+        <tr class="datas">    
+            <td class="id">{{ account["id"] }}</td>    
+            <td class="username">{{ account["username"] }}</td>      
+            <td class="url"><a href="{{ account['url'] }}" add target="_blank">{{ account["url"] }}</a></td> 
+            <td class="last_updated">{{ account["last_updated"] }}</td> 
+            <td class="password">{{ account["password"] }} </td>    
+            <td class="func1"><a href="./api/v1/accounts/id?id={{ account['id'] }}" method="GET"><input type="image" src="static/images/json.png" title="get json"></a></td> 
+            <td class="func1"><a href="./api/v1/accounts/delete?id={{ account['id'] }}" method="DELETE"><input type="image" src="static/images/delete.png" title="DELETE"></a></td>     
+        </tr>    
+    {% endfor %}    
+    </table>    
+    {% else %}
+    <h4>No accounts in the List !!</h4>    
+    {% endif %} 
+    <hr>     
+    <form action="/api/v1/accounts/id" method="POST">    
+        <table class="none">    
+            <tr>    
+                <td><b><big><label>Add account: </label></big></b></td>    
+            </tr>    
+            <tr>    
+            <td><input type="text" name="id" placeholder="ID" required></td>    
+            <td><input type="text" name="username" placeholder="Username" ></td>    
+            <td><input type="text" name="password" placeholder="Password" /></td>    
+            <td><input type="text" name="url" placeholder="URL" /></td>    
+            <td><button type="submit"> Create </button></td>   
+            </tr>    
+        </form>   
+        </table>   
+        <br>
+    <form action="/api/v1/accounts/update" method="POST">    
+        <table class="none">    
+        <tr>    
+            <td><b><big><label>Update account: </label></big></b></td>    
+        </tr>    
+        <tr>    
+        <td><input type="text" name="id" placeholder="ID" required></td>    
+        <td><input type="text" name="username" placeholder="Username" ></td>    
+        <td><input type="text" name="password" placeholder="Password" /></td>    
+        <td><input type="text" name="url" placeholder="URL" /></td>    
+        <td><button type="submit"> Update </button></td>    
+        </tr>    
+    </form>   
+    </table>     
+</body>    
+</html>
