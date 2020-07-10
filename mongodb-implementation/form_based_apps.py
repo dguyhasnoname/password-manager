@@ -9,7 +9,7 @@ from cryptography.fernet import Fernet
 from datetime import datetime   
     
 app = flask.Flask(__name__)
-app.config["DEBUG"] = True 
+app.config["DEBUG"] = True
     
 global f
 PASSWORD_MANAGER_KEY = os.getenv('PASSWORD_MANAGER_KEY', '/Users/mukund/.ssh/fernet_key')
@@ -17,7 +17,9 @@ with open(PASSWORD_MANAGER_KEY, "rb") as file:
     key = file.read()
     f = Fernet(key)
 
-client = MongoClient("mongodb://127.0.0.1:27017")  # host uri
+user = os.getenv('MONGO_USER')
+password = os.getenv('MONGO_PASSWORD')
+client = MongoClient('mongodb://%s:%s@127.0.0.1/accounts' % (user, password))
 db = client.accounts  # Select the database
 tasks = db.task  # Select the collection name
 
@@ -90,7 +92,7 @@ def api_id_get():
                 "url": request.values.get("url"),
                 "last_updated": datetime.utcnow()
                 }
-
+        flag = ""
         for account in tasks.find():
             account['id'] = str(account['id'])
             if account['id'] == data['id']:
