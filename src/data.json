@@ -1,10 +1,15 @@
-{
-    "accounts": [
-        {
-            "username": "test",
-            "website": "https://test.com",
-            "password": "gAAAAABfANys31iGY-yLjlKJhbYQgeV6hfgpZ3uMsft12PYR-vDsGP_zWa4MU9uSsUpnWIZe_jHoHcSTDC5nCXMDGb3o11foqQ==",
-            "last_updated": "04-07-20"
-        }
-    ]
-}
+[
+    {
+        "username": "test",
+        "url": "https://test.com",
+        "password": "gAAAAABfANys31iGY-yLjlKJhbYQgeV6hfgpZ3uMsft12PYR-vDsGP_zWa4MU9uSsUpnWIZe_jHoHcSTDC5nCXMDGb3o11foqQ==",
+        "last_updated": "04-07-20",
+        "id": "test"
+    },
+    {
+        "username": "mukund",
+        "password": "gAAAAABfBMAEe-Vml8_C5om7sTA0KLLeVn2Ef-eKjdVXBY13SdWdZtiFcnzWe0yhBMSb92IsWT_URjoCCdzmLKqK0GtugizrcA==",
+        "id": "mukund",
+        "url": "https://mukund.com"
+    }
+]
