@@ -1,27 +1,19 @@
 import flask
 from flask import request, jsonify, make_response, render_template, redirect,url_for
 from pymongo import MongoClient
-import os, pyperclip, time
+import os, pyperclip, time, jsonschema
 import simplejson as json
-import jsonschema
 from bson.json_util import dumps, loads
 from cryptography.fernet import Fernet
 from datetime import datetime   
+import config as CONFIG
     
 app = flask.Flask(__name__)
-app.config["DEBUG"] = True
-    
-global f
-PASSWORD_MANAGER_KEY = os.getenv('PASSWORD_MANAGER_KEY', '/Users/mukund/.ssh/fernet_key')
-with open(PASSWORD_MANAGER_KEY, "rb") as file:
-    key = file.read()
-    f = Fernet(key)
 
-user = os.getenv('MONGO_USER')
-password = os.getenv('MONGO_PASSWORD')
-client = MongoClient('mongodb://%s:%s@127.0.0.1/accounts' % (user, password))
-db = client.accounts  # Select the database
-tasks = db.task  # Select the collection name
+f = Fernet('%s' %(CONFIG.Config.PASSWORD_MANAGER_KEY)) # reads key from env via config.py
+
+db = MongoClient('mongodb://%s:%s@127.0.0.1/accounts' % (CONFIG.Config.MONGO_USER, CONFIG.Config.MONGO_PASSWORD)) # connects to db by reading user/pwd from env via config.py
+tasks = db.accounts.task  # Select the db collection name
 
 def format_ouput(status=200, indent=4, sort_keys=True, **kwargs):
     response = make_response(dumps(dict(**kwargs), indent=indent, sort_keys=sort_keys))
@@ -54,7 +46,6 @@ def get_id():
     else:
         return "\n[ERROR]: No ID field provided. Please specify an ID."
     return id
-    
 
 @app.route('/api/v1/accounts/all', methods=['GET'])
 def api_all():
@@ -73,10 +64,8 @@ def api_id_get():
 
         for account in tasks.find():
             account['id'] = str(account['id'])
-            #account['password'] = str(account['password'])
             if account['id'] == id:
                 account['password'] = f.decrypt(account['password']).decode("utf-8")
-                #pyperclip.copy(f.decrypt(account['password'].encode("utf-8")).decode("utf-8"))
                 return format_ouput(**account)
 
     elif flask.request.method == 'POST':
@@ -102,7 +91,6 @@ def api_id_get():
                 flag = True
         if flag: 
             tasks.insert_one(data).inserted_id
-            #return "\n[SUCCESS] ID \"{}\" saved!".format(data['id'])
             return redirect(url_for('get_template'))          
     else:
         return "[ERROR]"
@@ -115,7 +103,6 @@ def api_id_delete():
         account['id'] = str(account['id'])
         if account['id'] == id:
             tasks.delete_one(account)
-            #return "\n[SUCCESS] ID \"{}\" deleted!".format(id)
             return redirect(url_for('get_template'))   
         else:
             flag = True
@@ -141,7 +128,6 @@ def api_id_update():
         account['id'] = str(account['id'])
         if account['id'] == data['id']:
             tasks.replace_one(account, data, upsert=True)
-            #return "\n[OK] ID \"{}\" updated!".format(account['id']) 
             return redirect(url_for('get_template'))   
         else:
             flag = True
