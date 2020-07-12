@@ -5,7 +5,8 @@
         <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='assets/style.css')}}" >    
         <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='assets/emoji.css')}}" >    
         <script src="{{ url_for('static',filename='assets/twemoji.min.js')}}"></script>      
-        <script src="{{ url_for('static',filename='assets/emoji.js')}}"></script>        
+        <script src="{{ url_for('static',filename='assets/emoji.js')}}"></script>   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>     
     </head>    
 <body>    
     <h1>Password manager</h1>         
@@ -21,20 +22,21 @@
     <table >    
         <tr id="row" style="text-align:left" >     
             <th class="id">id</th>    
-            <th class="usename">username</th>      
+            <th class="usename">username</th>  
+            <th class="password">pswd</th>     
             <th class="url">url</th>    
-            <th class="last_updated">last_updated</th>
-            <th class="password">password</th>     
+            <th class="last_updated">last_updated</th>  
+                
         </tr>    
     {% for account in accounts %}    
         <tr class="datas">    
             <td class="id">{{ account["id"] }}</td>    
-            <td class="username">{{ account["username"] }}</td>      
+            <td class="username">{{ account["username"] }}</td>     
+            <td class="func1"><a href="./api/v1/accounts/pass?id={{ account['id'] }}" method="GET"><input type="image" src="static/images/pass.png" style="width:25;height:15;" title="password"></a></td>  
             <td class="url"><a href="{{ account['url'] }}" add target="_blank">{{ account["url"] }}</a></td> 
             <td class="last_updated">{{ account["last_updated"] }}</td> 
-            <td class="password">{{ account["password"] }} </td>    
             <td class="func1"><a href="./api/v1/accounts/id?id={{ account['id'] }}" method="GET"><input type="image" src="static/images/json.png" title="get json"></a></td> 
-            <td class="func1"><a href="./api/v1/accounts/delete?id={{ account['id'] }}" method="DELETE"><input type="image" src="static/images/delete.png" title="DELETE"></a></td>     
+            <td class="func1"><a href="./api/v1/accounts/delete?id={{ account['id'] }}" method="DELETE"><input type="image" src="static/images/delete.png" title="DELETE"></a></td> 
         </tr>    
     {% endfor %}    
     </table>    
@@ -70,6 +72,9 @@
         <td><button type="submit"> Update </button></td>    
         </tr>    
     </form>   
-    </table>     
+    </table>  
+    <script>
+        
+    </script>       
 </body>    
 </html>

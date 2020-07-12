@@ -33,28 +33,15 @@ class action:
     }
 
     def validate_json(json_data):
-        try:
-            errors = jsonschema.validate(json_data, action.schema)
-        except ValidationError as e:
-            errors = traceback.print_exc()
-            return [e.message]
-        except Exception as e:
-            traceback.print_exc()
-            return e
+        if jsonschema.validate(json_data, action.schema):
+            return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})
+        # except ValidationError as e:
+        #     errors = traceback.print_exc()
+        #     return errors
 
     def get_id():
-        try:
-            id = request.args.get('id', type=str)
-            return id
-        except:
-            return traceback.print_exc()
-
-    def format_ouput(status=200, indent=4, sort_keys=True, **kwargs):
-        response = make_response(dumps(dict(**kwargs), indent=indent, sort_keys=sort_keys))
-        response.headers['Content-Type'] = 'application/json; charset=utf-8'
-        response.headers['mimetype'] = 'application/json'
-        response.status_code = status
-        return response
+        id = request.args.get('id', type=str)
+        return id
 
 @app.route('/api/v1/accounts/all', methods=['GET'])
 def api_all():
@@ -65,24 +52,25 @@ def api_all():
 def api_id_get():
     if flask.request.method == 'GET':
         id = action.get_id()
-        if not id:
-            return "\n[ERROR] Invalid request! Please provide an ID.\n"
+        if id == "":
+            return not_found(id)
+
         flag = ""
         for account in tasks.find():
             account['id'] = str(account['id'])
             if account['id'] == id:
                 pyperclip.copy(f.decrypt(account['password']).decode("utf-8"))
-                return action.format_ouput(**account)
+                return make_response(dumps(dict(account), indent=4, sort_keys=True))
             else:
                 flag = False
         if not flag:
-            return "\n[WARNING] ID \"{}\" not found! Please provide correct ID.\n".format(id)
+            return not_found(id)
 
     elif flask.request.method == 'POST':
         json_data = request.get_json(force=True)
         errors = action.validate_json(json_data)
         if errors:
-            return "\n[ERROR] Invalid JSON! \nValid JSON format:\n\n{}\n".format(action.schema['properties'])
+            return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})
 
         json_data['last_updated'] = datetime.utcnow()
         data = {"username": json_data['username'],
@@ -95,31 +83,32 @@ def api_id_get():
         for account in tasks.find():
             account['id'] = str(account['id'])
             if account['id'] == json_data['id']:
-                return "\n[WARNING] ID \"{}\" already exists!".format(account['id'])
+                return jsonify({"id": json_data['id'], "message": "ID already exists. Try updating it."})
             else:
                 flag = True
         if flag: 
             tasks.insert_one(data).inserted_id
-            return "\n[SUCCESS] ID \"{}\" saved!\n".format(json_data['id'])
+            return jsonify({"message": "inserted", "status": 200, "inserted_data": str(data)})
 
     elif flask.request.method == 'DELETE':
         id = action.get_id()
+        if id == "":
+            return not_found(id)
 
         for account in tasks.find():
             account['id'] = str(account['id'])
             if account['id'] == id:
                 tasks.delete_one(account)
-                return "\n[SUCCESS] ID \"{}\" deleted!\n".format(account['id'])   
+                return jsonify({"message": "deleted", "status": 200, "deleted_id": id})
             else:
                 flag = True
-        if flag: 
-            return "\n[WARNING] ID \"{}\" not found!\n".format(id)  
+        if flag:
+            return not_found(id)
     else:
-        id = action.get_id()
         json_data = request.get_json(force=True)
         errors = action.validate_json(json_data)
-        if errors:
-            return "\n[ERROR] Invalid JSON! \nValid JSON format:\n\n{}\n".format(action.schema['properties'])
+        # if errors:
+        #     return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})
         json_data['last_updated'] = datetime.utcnow()
         data = {"username": json_data['username'],
                 "password": f.encrypt(json_data['password'].encode("utf-8")),
@@ -132,15 +121,27 @@ def api_id_get():
             account['id'] = str(account['id'])
             if account['id'] == json_data['id']:
                 tasks.replace_one(account, data, upsert=True)
-                return "\n[SUCCESS] ID \"{}\" updated!".format(account['id'])   
+                return jsonify({"message": "updated", "status": 200, "updated_json": data})
             else:
                 flag = True
-        if flag: 
-            return "\n[WARNING] ID \"{}\" not found!".format(id)         
+        if flag:
+            return not_found(json_data['id'])
 
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({'msg': 'This is the Home'})
+
+@app.errorhandler(404)
+def not_found(id):
+    message = {
+        'status': 404,
+        'message': 'Not Found: ' + request.url,
+        'id' : id,
+    }
+    resp = jsonify(message)
+    resp.status_code = 404
+
+    return resp    
 
 if __name__ == '__main__':
     app.run(debug=True)

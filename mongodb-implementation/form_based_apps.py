@@ -13,7 +13,6 @@ import config as CONFIG
 app = flask.Flask(__name__)
 
 f = Fernet('%s' %(CONFIG.Config.PASSWORD_MANAGER_KEY)) # reads key from env via config.py
-
 db = MongoClient('mongodb://%s:%s@127.0.0.1/accounts' % (CONFIG.Config.MONGO_USER, CONFIG.Config.MONGO_PASSWORD)) # connects to db by reading user/pwd from env via config.py
 tasks = db.accounts.task  # Select the db collection name
 
@@ -60,8 +59,11 @@ def api_all():
 
 @app.route('/')
 def get_template():
-    #accounts = tasks.find()
-    return render_template("index.html",accounts=tasks.find())
+    accounts = []
+    for account in tasks.find():
+        account['password'] = f.decrypt(account['password']).decode("utf-8")  
+        accounts.append(account)
+    return render_template("index.html",accounts=accounts)
 
 @app.route('/api/v1/accounts/id', methods=['GET', 'POST', 'DELETE', 'UPDATE'])
 def api_id_get():
@@ -71,12 +73,12 @@ def api_id_get():
         for account in tasks.find():
             account['id'] = str(account['id'])
             if account['id'] == id:
-                account['password'] = f.decrypt(account['password']).decode("utf-8")
-                return action.format_ouput(**account)
+                #account['password'] = f.decrypt(account['password']).decode("utf-8")
+                return action.format_ouput(**account) 
             else:
                 flag = False
         if not flag:
-            return "[WARNING] ID \"{}\" not found! Please provide correct ID.".format(id)                
+            return not_found(id)              
 
     elif flask.request.method == 'POST':
         errors = action.validate_json({"id": request.values.get("id"), 
@@ -86,7 +88,7 @@ def api_id_get():
                                         "last_updated": request.values.get("url")
                                         })
         if errors:
-            return "[ERROR] Invalid JSON!  Valid JSON format:  %s" % (action.schema['properties'])
+            return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})
         data = {"id": request.values.get("id"), 
                 "username": request.values.get("username"),
                 "password": f.encrypt(request.values.get("password").encode("utf-8")),
@@ -97,15 +99,14 @@ def api_id_get():
         for account in tasks.find():
             account['id'] = str(account['id'])
             if account['id'] == data['id']:
-                return "[WARNING] ID \"{}\" already exists!".format(account['id'])
-                sys.exit()
+                return jsonify({"id": data['id'], "message": "ID already exists. Try updating it."})
             else:
                 flag = True
         if flag: 
             tasks.insert_one(data).inserted_id
             return redirect(url_for('get_template'))     
     else:
-        return "[ERROR]"
+        return "[ERROR] Invalid request!"
       
 @app.route('/api/v1/accounts/delete', methods=['GET'])
 def api_id_delete():
@@ -119,16 +120,18 @@ def api_id_delete():
         else:
             flag = True
     if flag: 
-        return "[WARNING] ID \"{}\" not found!".format(id) 
+        return not_found(id)
 
 @app.route('/api/v1/accounts/update', methods=['POST'])
 def api_id_update():
-    action.validate_json({"id": request.values.get("id"),
-            "username": request.values.get("username"),
-            "password": request.values.get("password"),
-            "url": request.values.get("url"),
-            "last_updated": request.values.get("url")
-            })
+    errors = action.validate_json({"id": request.values.get("id"),
+                                    "username": request.values.get("username"),
+                                    "password": request.values.get("password"),
+                                    "url": request.values.get("url"),
+                                    "last_updated": request.values.get("url")
+                                    })
+    if errors:
+        return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})            
     data = {"id": request.values.get("id"), 
             "username": request.values.get("username"),
             "password": f.encrypt(request.values.get("password").encode("utf-8")),
@@ -144,11 +147,37 @@ def api_id_update():
         else:
             flag = True
     if flag: 
-        return "[WARNING] ID \"{}\" not found! It can't be updated.".format(data['id'])        
+        return not_found(data['id'])     
+
+@app.route('/api/v1/accounts/pass', methods=['GET'])
+def api_get_pass():
+    id = action.get_id()
+
+    for account in tasks.find():
+        account['id'] = str(account['id'])
+        if account['id'] == id:
+            password = f.decrypt(account['password']).decode("utf-8")
+            return jsonify({"account": id, "password": password})
+        else:
+            flag = False
+    if not flag:
+        return not_found(id)
 
 @app.route('/test', methods=['GET'])
 def test():
     return jsonify({'msg': 'This is a Test'})
+
+@app.errorhandler(404)
+def not_found(id):
+    message = {
+        'status': 404,
+        'message': 'Not Found: ' + request.url,
+        'id' : id,
+    }
+    resp = jsonify(message)
+    resp.status_code = 404
+
+    return resp 
 
 if __name__ == '__main__':
     app.run(debug=True)
