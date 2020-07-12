@@ -33,11 +33,14 @@ class action:
     }
 
     def validate_json(json_data):
-        if jsonschema.validate(json_data, action.schema):
-            return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})
-        # except ValidationError as e:
-        #     errors = traceback.print_exc()
-        #     return errors
+        try:
+            jsonschema.validate(json_data, action.schema)
+        except ValidationError as e:
+            traceback.print_exc()
+            return [e.message]
+        except Exception as e:
+            traceback.print_exc()
+            return e
 
     def get_id():
         id = request.args.get('id', type=str)
@@ -107,8 +110,8 @@ def api_id_get():
     else:
         json_data = request.get_json(force=True)
         errors = action.validate_json(json_data)
-        # if errors:
-        #     return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})
+        if errors:
+            return jsonify({"message": "Invalid JSON.", "valid_json": action.schema['properties']})
         json_data['last_updated'] = datetime.utcnow()
         data = {"username": json_data['username'],
                 "password": f.encrypt(json_data['password'].encode("utf-8")),
