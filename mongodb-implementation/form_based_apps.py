@@ -4,6 +4,7 @@ from pymongo import MongoClient
 import os, pyperclip, time, jsonschema
 from jsonschema import validate, ValidationError
 import simplejson as json
+from bson import json_util
 from bson.json_util import dumps, loads
 from cryptography.fernet import Fernet
 from datetime import datetime   
@@ -55,7 +56,11 @@ class action:
 
 @app.route('/api/v1/accounts/all', methods=['GET'])
 def api_all():
-    return dumps(tasks.find())
+    #return dumps(tasks.find())
+    accounts = []
+    for account in tasks.find():
+        accounts.append({"id": account['id'], "username": account['username'], "url": account['url']})
+    return jsonify(accounts)
 
 @app.route('/')
 def get_template():
