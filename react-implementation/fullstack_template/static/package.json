@@ -1,0 +1,39 @@
+{
+  "name": "static",
+  "version": "1.0.0",
+  "description": "password-manager",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack -p --progress --config webpack.config.js",
+    "dev-build": "webpack --progress -d --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --progress -d --config webpack.config.js --watch"
+  },
+  "keywords": [
+    "password-manager"
+  ],
+  "author": "dguyhasnoname",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "@babel/preset-react": "^7.10.4",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^0.28.4",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^0.11.2",
+    "jquery": "^3.2.1",
+    "react": "^15.6.2",
+    "react-bootstrap": "^0.31.0",
+    "react-dom": "^15.6.2",
+    "style-loader": "^0.18.2",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
+  }
+}
